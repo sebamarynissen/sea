@@ -9,7 +9,6 @@ Usage
 ===
 
 In your front controller, put
-
 ```php
 use Sea\Sea;
 
