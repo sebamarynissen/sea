@@ -1,0 +1,8 @@
+{
+    "main": {
+        "path": "/",
+        "defaults": {
+            "_controller": "Controllers\\IndexController::index"
+        }
+    }
+}

@@ -15,11 +15,13 @@
         "symfony/routing": "2.4.x",
         "symfony/http-kernel": "2.4.x",
         "symfony/config": "2.4.x",
-        "symfony/security": "2.4.x"
+        "symfony/security": "2.4.x",
+        "doctrine/annotations": "1.1.x"
     },
     "autoload": {
         "psr-0": {
-            "Sea\\": "lib/"
+            "Sea\\": "lib/",
+            "": "test/"
         }
     }
 }
