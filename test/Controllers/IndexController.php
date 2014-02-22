@@ -1,6 +1,7 @@
 <?php
-
 namespace Controllers;
+
+use Sea\Routing\Annotations\Route;
 
 /**
  * Description of IndexController
@@ -9,6 +10,9 @@ namespace Controllers;
  */
 class IndexController {
     
+    /**
+     * @Route("/")
+     */
     public function index() {
         die("Hello");
     }

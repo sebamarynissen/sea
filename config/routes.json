@@ -1,8 +1,6 @@
 {
-    "main": {
-        "path": "/",
-        "defaults": {
-            "_controller": "Controllers\\IndexController::index"
-        }
+    "beheer": {
+        "resource": "Controllers\\IndexController",
+        "type": "annotation"
     }
 }

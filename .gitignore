@@ -1,2 +1,7 @@
+# Netbeans and vendor directories
 /vendor/
 /nbproject/
+
+# Testing stuff
+/test/
+/config/

@@ -15,6 +15,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
 
 /**
@@ -103,7 +104,13 @@ class Sea {
      * @param \Composer\Autoload\ClassLoader $composer Composer's ClassLoader.
      */
     public function __construct(ClassLoader $composer) {
+        // Store composers autoloader and register it as the autoloader for
+        // doctrine's annotations since Doctrine doesn't supported classes
+        // autoloaded by composer
         $this->composer = $composer;
+        AnnotationRegistry::registerLoader(function($class) use ($composer) {
+            return $composer->loadClass($class);
+        });
         $this->resolver = new ControllerResolver();
         $this->session = new Session();
         $this->fetchRoutes();
