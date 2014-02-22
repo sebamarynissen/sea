@@ -6,6 +6,7 @@ use Sea\Routing\ControllerResolver;
 use Sea\Routing\JsonFileLoader;
 use Sea\Routing\RestRouteLoader;
 use Sea\Routing\Annotations\AnnotationLoader;
+use Sea\Exception\RoutesNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -113,7 +114,6 @@ class Sea {
         });
         $this->resolver = new ControllerResolver();
         $this->session = new Session();
-        $this->fetchRoutes();
     }
 
     /**
@@ -169,25 +169,41 @@ class Sea {
     }
     
     /**
-     * Fetches all routes that need to be set
+     * Sets a Symfony DelegatingLoader if needed
      * 
-     * @return Sea Fluent interface
-     * @todo Implement a mechanism to specify the path to the routes
+     * @param string[] $paths The paths to look for the resources
+     * @return \Sea\Sea Fluent interface
      */
-    protected function fetchRoutes() {
-        
-        // Paths to look for route files
-        $paths = array('./config');
-        
+    protected function setDelegatingLoader($paths) {
         // IMPORTANT: Order of the loaders is important!
         $resolver = new LoaderResolver(array(
             new RestRouteLoader($paths),
             new JsonFileLoader($paths),
-            new AnnotationLoader(new AnnotationReader()))
-        );
+            new AnnotationLoader(new AnnotationReader())
+        ));
         $this->loader = new DelegatingLoader($resolver);
-        $this->routes = $this->loader->load('routes.json');
-        
+        return $this;
+    }
+    
+    /**
+     * Initializes all routes
+     * 
+     * @param RouteCollection|string $routes A RouteCollection, or a path to a
+     * json file specifying the different routes. Note that if this path
+     * uses other file resources, those paths should be relative to the given
+     * path!
+     * @return \Sea\Sea Fluent interface
+     */
+    public function routing($routes) {
+        if ($routes instanceof RouteCollection) {
+            $this->routes = $routes;
+        }
+        elseif (is_string($routes)) {
+            $info = pathinfo($routes);
+            $paths = array($info['dirname']);
+            $this->setDelegatingLoader($paths);
+            $this->routes = $this->loader->load($info['basename']);
+        }
         return $this;
     }
     
@@ -200,6 +216,14 @@ class Sea {
      * the client
      */
     public function run(Request $request = null) {
+        
+        // If the routes were not initialized yet, notify the user that he
+        // should provide a file which will be used to fetch the routes. Any
+        // file resources that the previous file specifies, should be located in
+        // the same folder!
+        if (! ($this->routes instanceof RouteCollection)) {
+            throw new RoutesNotFoundException('No RouteCollection was found! Make sure to call Sea::routing()!');
+        }
         
         // If no - perhaps simulated - request wa specified, create from globals
         if ($request === null) {
@@ -246,7 +270,7 @@ class Sea {
         return $response;
         
     }
-
+    
     /**
      * Injects the Session object in the request that is being handled currently
      * 
