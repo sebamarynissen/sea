@@ -1,0 +1,25 @@
+{
+    "name": "sebamarynissen/sea",
+    "description": "Sea is a PHP framework built on some Symfony components. It is mainly used personally, but feel free to use it.",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "sebamarynissen",
+            "email": "spamsebakapot@hotmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "symfony/http-foundation": "2.4.x",
+        "symfony/routing": "2.4.x",
+        "symfony/http-kernel": "2.4.x",
+        "symfony/config": "2.4.x",
+        "symfony/security": "2.4.x"
+    },
+    "autoload": {
+        "psr-0": {
+            "Sea\\": "lib/"
+        }
+    }
+}
