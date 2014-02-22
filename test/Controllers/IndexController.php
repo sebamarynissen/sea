@@ -17,4 +17,11 @@ class IndexController {
         die("Hello");
     }
     
+    /**
+     * @Route("/hello")
+     */
+    public function hello() {
+        die("This is the hello route");
+    }
+    
 }
