@@ -204,6 +204,14 @@ class Sea {
             $this->setDelegatingLoader($paths);
             $this->routes = $this->loader->load($info['basename']);
         }
+        
+        // TODO: Better way to implement /events/ as /events etc.
+        foreach ($this->routes as $route) {
+            $path = $route->getPath();
+            if (preg_match('/\/$/', $path)) {
+                $route->setPath(preg_replace('/\/$/', '', $path));
+            }
+        }
         return $this;
     }
     
