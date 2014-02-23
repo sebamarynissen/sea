@@ -31,4 +31,25 @@ class AnnotationLoader extends AnnotationClassLoader {
         $route->setDefault('_controller', sprintf('%s::%s', $class->getName(), $method->getName()));
     }
     
+    /**
+     * Loads all routes associated with the given class.
+     * 
+     * Extends Symfony's AnnotationClassLoader::load() to add a prefix if 
+     * specified
+     * 
+     * @param \ReflectionClass $class
+     * @param type $type
+     * @return \Symfony\Component\Routing\RouteCollection
+     */
+    public function load($class, $type = null) {
+        $collection = parent::load($class, $type);
+        $class = new \ReflectionClass($class);
+        // Check for "Prefix" annotations and if so, add a prefix
+        $prefix = $this->reader->getClassAnnotation($class, 'Sea\\Routing\\Annotations\\Prefix');
+        if ($prefix) {
+            $collection->addPrefix($prefix->getPrefix());
+        }
+        return $collection;
+    }
+    
 }
