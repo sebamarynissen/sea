@@ -164,7 +164,6 @@ class Sea {
      * @return \Sea\Sea Fluent interface
      */
     protected function fetchController() {
-        $context = new SecurityContext($authenticationManager, $accessDecisionManager);
         $this->request->attributes->add($this->matcher->matchRequest($this->request));
         $this->controller = $this->resolver->getController($this->request);
         return $this;
