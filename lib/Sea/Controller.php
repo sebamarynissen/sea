@@ -99,7 +99,7 @@ abstract class Controller {
      */
     public function getResponse() {
         if (!isset($this->response)) {
-            return new Response('', 204);
+            return new Response('EMPTY RESPONSE, CODE = 200 FRO DEBUGGING PURPOSES', 200);
         }
         else {
             return $this->response;

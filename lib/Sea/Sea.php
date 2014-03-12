@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
+use Symfony\Component\Security\Core\SecurityContext;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
 
@@ -163,6 +164,7 @@ class Sea {
      * @return \Sea\Sea Fluent interface
      */
     protected function fetchController() {
+        $context = new SecurityContext($authenticationManager, $accessDecisionManager);
         $this->request->attributes->add($this->matcher->matchRequest($this->request));
         $this->controller = $this->resolver->getController($this->request);
         return $this;
