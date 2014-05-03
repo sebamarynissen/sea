@@ -21,8 +21,10 @@
         "doctrine/orm": "2.4.x"
     },
     "autoload": {
+        "psr-4": {
+            "Sea\\": "lib/"
+        },
         "psr-0": {
-            "Sea\\": "lib/",
             "": "test/"
         }
     }
