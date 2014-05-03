@@ -67,13 +67,18 @@ abstract class Controller {
      * This function can be used in order to not always have to use
      * new \Symfony\...\Response etc.
      * 
-     * @param string $content Response content
+     * @param string|Response $content Response content or a response itself
      * @param int $status HTTP status
      * @param array $headers Headers
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function response($content = '', $status = 200, $headers = array()) {
-        $this->response = new Response($content, $status, $headers);
+        if ($content instanceof Response) {
+            $this->response = $content;
+        }
+        else {
+            $this->response = new Response($content, $status, $headers);
+        }
         return $this->response;
     }
     
