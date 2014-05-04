@@ -42,7 +42,7 @@ abstract class Repository extends EntityRepository {
         if (!isset($this->entityName)) {
             throw new \Exception('No entity name set!');
         }
-        parent::__construct(new EntityManager($proxyDir, $proxyNamespace), new ClassMetadata($this->entityNamespace . '\\' . $this->entityName));
+        parent::__construct(new EntityManager($pdo, $proxyDir, $proxyNamespace), new ClassMetadata($this->entityNamespace . '\\' . $this->entityName));
     }
     
     /**
