@@ -80,8 +80,8 @@ class EntityManager extends BaseManager {
         $this->config = new Configuration();
         $this->mapper = new AnnotationDriver(new AnnotationReader());
         $this->config->setMetadataDriverImpl($this->mapper);
-        $this->config->setProxyDir($this->getProxyDir());
-        $this->config->setProxyNamespace($this->getProxyNamespace());
+        $this->config->setProxyDir($dir);
+        $this->config->setProxyNamespace($ns);
         return $this;
     }
     
