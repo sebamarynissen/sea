@@ -72,24 +72,14 @@ abstract class Repository extends EntityRepository {
     }
     
     /**
-     * Should fetch data received from MySQL to an entity
-     *
-    *
-    abstract public function fetch($data);
-    
-    /**
-     * Fetches all entities from a given dataset into an array
+     * Creates a custom query builder, where from is already set to the Entity
      * 
-     * @param array $data
-     * @return array
-     *
-    public function fetchAll($data) {
-        $entities = array();
-        foreach ($data as $entity) {
-            $fetched = $this->fetch($entity);
-            $entities[$fetched->getId()] = $fetched;
-        }
-        return $entities;
-    }*/
+     * @param string $alias Alias for the entity
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function createQueryBuilder($alias) {
+        $qb = parent::createQueryBuilder($alias);
+        return $qb->from($this->entityName, $alias);
+    }
     
 }
