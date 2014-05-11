@@ -30,30 +30,19 @@ abstract class Repository extends EntityRepository {
     /**
      * Constructs a new PoutrixRepository
      * 
-     * @param \PDO $pdo A PDO instance to use
+     * @param EntityManager An instance of the Sea EntityManager
      * @param string $entityNamespace The namespace the entities are stored in
      * @param string $proxyDir Proxy directory
      * @param string $proxyNamespace Proxy namespace
      * @throws \Exception
      */
-    public function __construct(\PDO $pdo, $entityNamespace, $proxyDir, $proxyNamespace) {
+    public function __construct(EntityManager $manager, $entityNamespace) {
         $this->entityNamespace = $entityNamespace;
         $this->findEntityName();
         if (!isset($this->entityName)) {
             throw new \Exception('No entity name set!');
         }
-        parent::__construct(new EntityManager($pdo, $proxyDir, $proxyNamespace), new ClassMetadata($this->entityNamespace . '\\' . $this->entityName));
-    }
-    
-    /**
-     * Saves an entity to the database
-     * 
-     * @param object $entity The entity to save
-     */
-    public function save($entity) {
-        $this->_em->persist($entity);
-        $this->_em->flush();
-        return $this;
+        parent::__construct($manager, new ClassMetadata($this->entityNamespace . '\\' . $this->entityName));
     }
     
     /**
@@ -70,26 +59,5 @@ abstract class Repository extends EntityRepository {
         }
         return $this;
     }
-    
-    /**
-     * Should fetch data received from MySQL to an entity
-     *
-    *
-    abstract public function fetch($data);
-    
-    /**
-     * Fetches all entities from a given dataset into an array
-     * 
-     * @param array $data
-     * @return array
-     *
-    public function fetchAll($data) {
-        $entities = array();
-        foreach ($data as $entity) {
-            $fetched = $this->fetch($entity);
-            $entities[$fetched->getId()] = $fetched;
-        }
-        return $entities;
-    }*/
     
 }
