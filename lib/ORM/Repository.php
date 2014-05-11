@@ -60,4 +60,16 @@ abstract class Repository extends EntityRepository {
         return $this;
     }
     
+    /**
+     * Returns the EntityManager that is used
+     * 
+     * Note: Doctrine implements this method, but for some reason does it only
+     * allow magic finder methods... Very, very strange...
+     * 
+     * @return \Doctrine\ORM\EntityManager
+     */
+    public function getEntityManager() {
+        return parent::getEntityManager();
+    }
+    
 }
