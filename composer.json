@@ -17,6 +17,7 @@
         "symfony/http-kernel": "2.4.x",
         "symfony/config": "2.4.x",
         "symfony/security": "2.4.x",
+        "symfony/dependency-injection": "2.4.x",
         "doctrine/annotations": "1.1.x",
         "doctrine/orm": "2.4.x"
     },

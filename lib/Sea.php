@@ -9,6 +9,7 @@ use Sea\Routing\Annotations\AnnotationLoader;
 use Sea\Exception\RoutesNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
 use Symfony\Component\Security\Core\SecurityContext;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
 
@@ -27,7 +29,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
  *
  * @author Sebastiaan Marynissen <Sebastiaan.Marynissen@UGent.be>
  */
-class Sea {
+class Sea implements HttpKernelInterface {
     
     /**
      * The arguments that were passed to the controller currently loaded
@@ -99,6 +101,13 @@ class Sea {
     protected $session;
     
     /**
+     * A Symfony Service container
+     * 
+     * @var ContainerBuilder
+     */
+    protected $serviceContainer;
+    
+    /**
      * Initializes the framework.
      * 
      * After calling the constructor the requested route will be served
@@ -107,7 +116,7 @@ class Sea {
      */
     public function __construct(ClassLoader $composer) {
         // Store composers autoloader and register it as the autoloader for
-        // doctrine's annotations since Doctrine doesn't supported classes
+        // doctrine's annotations since Doctrine doesn't support classes
         // autoloaded by composer
         $this->composer = $composer;
         AnnotationRegistry::registerLoader(function($class) use ($composer) {
@@ -166,6 +175,7 @@ class Sea {
     protected function fetchController() {
         $this->request->attributes->add($this->matcher->matchRequest($this->request));
         $this->controller = $this->resolver->getController($this->request);
+        $this->controller[0]->setContainer($this->serviceContainer);
         return $this;
     }
     
@@ -242,6 +252,57 @@ class Sea {
             $this->request = $request;
         }
         
+        // Return the response
+        return $this->handle($this->request);
+        
+    }
+    
+    /**
+     * Initializes all services that need to be registered for the framework
+     * 
+     * Pass this function a path to a json config file, were all services are
+     * defined, but since the Sea framework tries to put as less configuration
+     * stuff as possible in seperate files, because these need to be parsed
+     * firstly, it is also possible to pass a instance of 
+     * Symfony\DependencyInjection\ContainerBuilder. This way, it is possible to
+     * specify the services in a PHP class, thus no need for an external config
+     * file.
+     * 
+     * @param string|ContainerBuilder A path to a json config file, or a
+     * container builder.
+     * @return \Sea\Sea Fluent interface
+     */
+    public function services($services) {
+        if ($services instanceof ContainerBuilder) {
+            
+        }
+        else {
+            $this->serviceContainer = new Services\ContainerBuilder();
+        }
+        return $this;
+    }
+    
+    /**
+     * Injects the Session object in the request that is being handled currently
+     * 
+     * @return \Sea\Sea Fluent interface
+     */
+    public function setSession() {
+        $this->request->setSession($this->session);
+        return $this;
+    }
+    
+    /**
+     * Handles a Http Request and converts it into a Response object
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @param int $type Master or subrequest
+     * @param boolean $catch If set to true, the function tries to catch all
+     * exceptions and tries to convert them into a response
+     * @return Response
+     */
+    public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true) {
+        
         // Handle all errors within a try-catch block
         try {
             
@@ -254,14 +315,16 @@ class Sea {
                     ->fetchController()
                     ->fetchArguments();
             
-            // Now, when everything is loaded, call the controller
+            // When this point is reached, the controller (as a PHP callable,
+            // which is an ARRAY!) is determined, as well as the arguments.
+            // Therefore, the controller can be called, providing it its
+            // arguments. The result should be a Response object. If no response
+            // was returned, an empty response will be returned!
             $response = call_user_func_array($this->controller, $this->arguments);
-            
-            // Send a response. If no response was set, an empty response is generated
-            if (!($response instanceof Response)) {
-                // Get the actual controller object, and NOT the PHP callable
-                // which is an array!
-                $response = $this->controller[0]->getResponse();
+            if (!$response instanceof Response) {
+                $class = new \ReflectionClass($this->controller[0]);
+                $response = new Response(sprintf('Controller %s::%s() did not return a response!', $class->getName(), $this->controller[1]), 500);
+                $response->headers->set('Content-type', 'text/plain');
             }
             
         }
@@ -278,16 +341,6 @@ class Sea {
         }
         return $response;
         
-    }
-    
-    /**
-     * Injects the Session object in the request that is being handled currently
-     * 
-     * @return \Sea\Sea Fluent interface
-     */
-    public function setSession() {
-        $this->request->setSession($this->session);
-        return $this;
     }
     
 }

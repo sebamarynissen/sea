@@ -14,6 +14,12 @@ $composer = require './vendor/autoload.php';
 $sea = new Sea($composer);
 $sea->routing('config/routes.json');
 
+// Similarly to the spcification of the routes, the services for your
+// application can either be defined in a Symfony-styled json config file, or
+// also as a class extending the ContainerBuilder. This class should then be
+// passed.
+$sea->services('config/services.json');
+
 // Process the request, and send the response that was returned. Note that the
 // response is not sent by default. This allows you to simulate requests and
 // responses internally, without the responses being sent automatically.

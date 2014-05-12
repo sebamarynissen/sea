@@ -5,6 +5,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\DependencyInjection\ContainerAware;
 
 /**
  * Controller base class
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
  *
  * @author Sebastiaan Marynissen <Sebastiaan.Marynissen@UGent.be>
  */
-abstract class Controller {
+abstract class Controller extends ContainerAware {
     
     /**
      * The request being handled
@@ -21,13 +22,6 @@ abstract class Controller {
      * @var Request
      */
     protected $request;
-    
-    /**
-     * The response being created
-     * 
-     * @var Response
-     */
-    protected $response;
 
     /**
      * Symfony's session object
@@ -66,6 +60,8 @@ abstract class Controller {
      * 
      * This function can be used in order to not always have to use
      * new \Symfony\...\Response etc.
+     * Note that it is still necessary to return the response that this method
+     * returns!
      * 
      * @param string|Response $content Response content or a response itself
      * @param int $status HTTP status
@@ -73,13 +69,7 @@ abstract class Controller {
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function response($content = '', $status = 200, $headers = array()) {
-        if ($content instanceof Response) {
-            $this->response = $content;
-        }
-        else {
-            $this->response = new Response($content, $status, $headers);
-        }
-        return $this->response;
+        return new Response($content, $status, $headers);
     }
     
     /**
@@ -88,27 +78,31 @@ abstract class Controller {
      * @param string $url Url to redirect to
      * @param int $status HTTP status code
      * @param array $headers Array of additional headers
-     * @return RedirectResponse The response that was set
+     * @return RedirectResponse A redirectresponse, redirecting the user to the
+     * given url
      */
     protected function redirect($url, $status = 302, $headers = array()) {
-        $this->response = new RedirectResponse($url, $status, $headers);
-        return $this->response;
+        return new RedirectResponse($url, $status, $headers);
     }
     
     /**
-     * Returns the response that was specified by the controller
+     * Gets a service by id
      * 
-     * If no response was set yet, an empty response is returned
+     * Note: It is suggested to extend Sea\Controller with your own getService()
+     * methods. For instance, if you have a custom EntityManager, it is
+     * suggested to implement getEntityManager() as
      * 
-     * @return \Symfony\Component\HttpFoundation\Response
+     * public function getEntityManager() {
+     *     return $this->get('managerId');
+     * }
+     * 
+     * and specify the return value in the docblock!
+     * 
+     * @param string $id The service id
+     * @return object The service
      */
-    public function getResponse() {
-        if (!isset($this->response)) {
-            return new Response('EMPTY RESPONSE, CODE = 200 FOR DEBUGGING PURPOSES', 200);
-        }
-        else {
-            return $this->response;
-        }
+    public function get($id) {
+        return $this->container->get($id);
     }
     
 }
