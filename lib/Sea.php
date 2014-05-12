@@ -179,6 +179,8 @@ class Sea implements HttpKernelInterface {
         /* @var $controller \Sea\Controller */
         $controller = $this->controller[0];
         $controller->setContainer($this->serviceContainer);
+        $controller->setRequest($this->request);
+        $controller->setSession($this->request->getSession());
         return $this;
     }
     

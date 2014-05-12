@@ -31,21 +31,6 @@ abstract class Controller extends ContainerAware {
     protected $session;
     
     /**
-     * Constructor
-     * 
-     * Called by the Sea class. Do not override!
-     * Override Controller::initialize() if you want to perform some
-     * initialisation for each request handled by this controller
-     * 
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     */
-    public function __construct(Request $request) {
-        $this->request = $request;
-        $this->session = $request->getSession();
-        // $this->initialize();
-    }
-    
-    /**
      * Creates a new response object and returns it
      * 
      * This function can be used in order to not always have to use
@@ -93,6 +78,16 @@ abstract class Controller extends ContainerAware {
      */
     public function get($id) {
         return $this->container->get($id);
+    }
+    
+    public function setRequest(Request $request) {
+        $this->request = $request;
+        return $this;
+    }
+    
+    public function setSession(Session $session) {
+        $this->session = $session;
+        return $this;
     }
     
 }
