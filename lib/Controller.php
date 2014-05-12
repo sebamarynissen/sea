@@ -80,11 +80,27 @@ abstract class Controller extends ContainerAware {
         return $this->container->get($id);
     }
     
+    /**
+     * Sets the request the controller is currently handling
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @return \Sea\Controller
+     * @internal Only called internally by the Sea class
+     */
     public function setRequest(Request $request) {
         $this->request = $request;
         return $this;
     }
     
+    /**
+     * Sets the session for the request the controller is currently handling
+     * 
+     * Note that this is just a shortcut
+     * 
+     * @param \Symfony\Component\HttpFoundation\Session\Session $session
+     * @return \Sea\Controller
+     * @internal Only called internally by the Sea class
+     */
     public function setSession(Session $session) {
         $this->session = $session;
         return $this;
