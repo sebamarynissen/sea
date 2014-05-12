@@ -42,17 +42,7 @@ abstract class Controller extends ContainerAware {
     public function __construct(Request $request) {
         $this->request = $request;
         $this->session = $request->getSession();
-        $this->initialize();
-    }
-    
-    /**
-     * Does nothing
-     * 
-     * Override this function to specify the initialization of the controller,
-     * for example for user authentication etc.
-     */
-    protected function initialize() {
-        // Do nothing, but be there to be overridden
+        // $this->initialize();
     }
     
     /**

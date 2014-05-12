@@ -7,6 +7,7 @@ use Sea\Routing\JsonFileLoader;
 use Sea\Routing\RestRouteLoader;
 use Sea\Routing\Annotations\AnnotationLoader;
 use Sea\Exception\RoutesNotFoundException;
+use Sea\DependencyInjection\ServiceContainer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -101,9 +102,9 @@ class Sea implements HttpKernelInterface {
     protected $session;
     
     /**
-     * A Symfony Service container
+     * Sea's SerivceContainer
      * 
-     * @var ContainerBuilder
+     * @var DependencyInjection\ServiceContainer
      */
     protected $serviceContainer;
     
@@ -175,7 +176,9 @@ class Sea implements HttpKernelInterface {
     protected function fetchController() {
         $this->request->attributes->add($this->matcher->matchRequest($this->request));
         $this->controller = $this->resolver->getController($this->request);
-        $this->controller[0]->setContainer($this->serviceContainer);
+        /* @var $controller \Sea\Controller */
+        $controller = $this->controller[0];
+        $controller->setContainer($this->serviceContainer);
         return $this;
     }
     
@@ -216,7 +219,9 @@ class Sea implements HttpKernelInterface {
             $this->routes = $this->loader->load($info['basename']);
         }
         
-        // TODO: Better way to implement /events/ as /events etc.
+        // Symfony's default behavior when a prefix is specified is, that 
+        // root/prefix/ and root/prefix are not the same. In Sea's view, they
+        // ARE the same, therefore, rewrite the routes as a fix.
         foreach ($this->routes as $route) {
             $path = $route->getPath();
             if (preg_match('/\/$/', $path)) {
@@ -271,13 +276,16 @@ class Sea implements HttpKernelInterface {
      * @param string|ContainerBuilder A path to a json config file, or a
      * container builder.
      * @return \Sea\Sea Fluent interface
+     * @todo Implement a JsonServiceLoader which can Load Json service
+     * definitions etc. For now, the only option is to specify a
+     * Sea\ServiceContainer yourself using inheritance.
      */
-    public function services($services) {
-        if ($services instanceof ContainerBuilder) {
-            
+    public function services($services = null) {
+        if ($services instanceof ServiceContainer) {
+            $this->serviceContainer = $services;
         }
         else {
-            $this->serviceContainer = new Services\ContainerBuilder();
+            $this->serviceContainer = new ServiceContainer();
         }
         return $this;
     }
@@ -323,7 +331,7 @@ class Sea implements HttpKernelInterface {
             $response = call_user_func_array($this->controller, $this->arguments);
             if (!$response instanceof Response) {
                 $class = new \ReflectionClass($this->controller[0]);
-                $response = new Response(sprintf('Controller %s::%s() did not return a response!', $class->getName(), $this->controller[1]), 500);
+                $response = new Response(sprintf('Controller %s::%s() did not return a response! Dump: ' . str_repeat(PHP_EOL, 2) . '%s', $class->getName(), $this->controller[1], var_dump($response)), 500);
                 $response->headers->set('Content-type', 'text/plain');
             }
             
