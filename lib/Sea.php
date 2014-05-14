@@ -137,6 +137,7 @@ class Sea extends HttpKernel {
         else {
             $this->services = new ServiceContainer();
         }
+        $this->services->compile();
     }
     
     public function run(Request $request = null) {
