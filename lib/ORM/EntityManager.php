@@ -15,14 +15,14 @@ use Doctrine\Common\EventManager;
  *
  * @author Sebastiaan Marynissen <Sebastiaan.Marynissen@UGent.be>
  */
-class EntityManager extends BaseManager {
+abstract class EntityManager extends BaseManager {
     
     /**
      * Doctrine's configuration object
      * 
      * @var Configuration
      */
-    protected $config;
+    private $config;
     
     /**
      * The Doctrine database connection
@@ -56,11 +56,12 @@ class EntityManager extends BaseManager {
      * Creates a specific EntityManager based on a PDO object
      * 
      * @param \PDO $pdo A PDO instance to be used
+     * @param string $entityNamespace The namespace the entities are stored in
      * @param string $proxyDir The proxy directory
      * @param string $proxyNamespace The proxy namespace
      */
-    public function __construct(\PDO $pdo, $proxyDir, $proxyNamespace) {
-        $this->createConfig($proxyDir, $proxyNamespace);
+    public function __construct(\PDO $pdo, $entityNamespace, $proxyDir, $proxyNamespace) {
+        $this->createConfig($entityNamespace, $proxyDir, $proxyNamespace);
         $this->driver = new Driver();
         $this->connection = new Connection(array(
             'pdo' => $pdo
@@ -72,17 +73,26 @@ class EntityManager extends BaseManager {
     /**
      * Creates a doctrine configuration object
      * 
+     * @param string $ens
      * @param string $dir
      * @param string $ns
      * @return EntityManager
      */
-    protected function createConfig($dir, $ns) {
+    private function createConfig($ens, $dir, $ns) {
         $this->config = new Configuration();
         $this->mapper = new AnnotationDriver(new AnnotationReader());
         $this->config->setMetadataDriverImpl($this->mapper);
+        $this->config->setEntityNamespaces(array($ens));
         $this->config->setProxyDir($dir);
         $this->config->setProxyNamespace($ns);
+        $this->configure($this->config);
         return $this;
     }
+    
+    /**
+     * Should be implemented to provide some additional configuration, like a
+     * custom RepositoryFactory or something
+     */
+    abstract protected function configure(Configuration $config);
     
 }
