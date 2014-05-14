@@ -125,16 +125,18 @@ class Sea extends HttpKernel {
     }
     
     /**
-     * Registers all services...
+     * Registers all services.
      * 
      * @param type $services
      * @return \Sea\Sea
      */
     public function services($services) {
-        // TODO: Implement
-        $this->services = new ServiceContainer();
-        $this->services->setSea($this);
-        return $this;
+        if ($services instanceof ServiceContainer) {
+            $this->services = $services;
+        }
+        else {
+            $this->services = new ServiceContainer();
+        }
     }
     
     public function run(Request $request = null) {
