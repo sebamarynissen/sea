@@ -2,6 +2,7 @@
 namespace Sea\Routing;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Sea\DependencyInjection\ServiceContainer;
@@ -20,6 +21,13 @@ class ControllerListener implements EventSubscriberInterface {
      * @var \Sea\DependencyInjection\ServiceContainer
      */
     protected $container;
+    
+    /**
+     * The request which is currently being handled
+     * 
+     * @var Request 
+     */
+    protected $request;
     
     /**
      * Returns for what Events the controller subscribes
@@ -41,7 +49,8 @@ class ControllerListener implements EventSubscriberInterface {
      * 
      * @param \Sea\DependencyInjection\ServiceContainer $container
      */
-    public function __construct(ServiceContainer $container) {
+    public function __construct(Request $request, ServiceContainer $container) {
+        $this->request = $request;
         $this->container = $container;
     }
     
@@ -54,6 +63,8 @@ class ControllerListener implements EventSubscriberInterface {
         $controller = $e->getController();
         $obj = $controller[0];
         $obj->setContainer($this->container);
+        $obj->setRequest($this->request);
+        $obj->setSession($this->request->getSession());
     }
     
     /**

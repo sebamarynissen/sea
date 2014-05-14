@@ -159,7 +159,7 @@ class Sea extends HttpKernel {
         // controller and also checks whether some preLoad method should be
         // implemented (which depends on whether the PreLoadInterface is 
         // implemented or not).
-        $controllerListener = new ControllerListener($this->services);
+        $controllerListener = new ControllerListener($request, $this->services);
         $this->dispatcher->addSubscriber($controllerListener);
         
         // Handle the request
