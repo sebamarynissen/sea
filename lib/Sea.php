@@ -6,6 +6,7 @@ use Symfony\Component\Config\Loader\DelegatingLoader;
 use Symfony\Component\Config\Loader\LoaderResolver;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\Routing\RouteCollection;
@@ -146,6 +147,9 @@ class Sea extends HttpKernel {
         if (is_null($request)) {
             $request = Request::createFromGlobals();
         }
+        
+        // Next, populate the request with a session
+        $request->setSession(new Session());
         
         // Register a RouterListener, which listens to a KernelRequest Event.
         // This RouterListener will then be responsible for calling the
