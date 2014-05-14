@@ -6,12 +6,17 @@ use Sea\Sea;
 // to be explicitly specified to the AnnotationRegistry.
 $composer = require './vendor/autoload.php';
 
+// Instantiate the Sea class. The Sea class is the actual framework class.
+// When using Annotations - in which Sea heavily believes, an autoloader should
+// be passed to the AnnotationRegistry, therefore composers autoloader is
+// injected into the sea object.
+$sea = new Sea($composer);
+
 // Specify the path to the json file containing all routes. The json file is
 // similar to a Symfony routing.yaml file. The same fields can be specified.
 // If your json file depends on other file resources, the paths need to be
 // defined relatively.
 // Alternatively you can pass an instance of a Symfony RouteCollection directly.
-$sea = new Sea($composer);
 $sea->routing('config/routes.json');
 
 // You can define your own ServiceContainers by extending the
@@ -24,4 +29,6 @@ $sea->services(null);
 // Process the request, and send the response that was returned. Note that the
 // response is not sent by default. This allows you to simulate requests and
 // responses internally, without the responses being sent automatically.
-$sea->run()->send();
+//$sea->run()->send();
+$resp = $sea->run();
+var_dump($resp);

@@ -1,5 +1,5 @@
 <?php
-namespace Sea;
+namespace Sea\HttpKernel;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

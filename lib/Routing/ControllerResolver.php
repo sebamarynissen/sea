@@ -2,13 +2,14 @@
 namespace Sea\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver as BaseResolver;
 
 /**
  * Resolves the controller
  *
  * @author Sebastiaan Marynissen <Sebastiaan.Marynissen@UGent.be>
  */
-class ControllerResolver extends \Symfony\Component\HttpKernel\Controller\ControllerResolver {
+class ControllerResolver extends BaseResolver {
 
     /**
      * The request being handled
