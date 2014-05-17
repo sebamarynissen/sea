@@ -158,6 +158,7 @@ class Sea extends HttpKernel {
         // This RouterListener will then be responsible for calling the
         // appropriate controller etc. and thus act as a router.
         $context = new RequestContext();
+        $context->fromRequest($request);
         $matcher = new UrlMatcher($this->routes, $context);
         $listener = new RouterListener($matcher);
         $this->dispatcher->addSubscriber($listener);

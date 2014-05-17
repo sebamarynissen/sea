@@ -30,5 +30,4 @@ $sea->services(null);
 // response is not sent by default. This allows you to simulate requests and
 // responses internally, without the responses being sent automatically.
 //$sea->run()->send();
-$resp = $sea->run();
-var_dump($resp);
+$resp = $sea->run()->send();
