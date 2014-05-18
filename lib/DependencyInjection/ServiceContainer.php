@@ -26,7 +26,10 @@ class ServiceContainer extends ContainerBuilder {
      */
     public function __construct() {
         parent::__construct();
-        $this->register('killer')->setClass('Sea\\Services\\SerialKiller');
+        
+        // Register the timer service
+        $this->register('timer')
+                ->setClass('Sea\\DependencyInjection\\Timer');
     }
     
     /**
