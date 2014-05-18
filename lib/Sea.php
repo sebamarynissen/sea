@@ -56,7 +56,7 @@ class Sea extends HttpKernel {
      * 
      * @var UrlMatcher
      */
-    protected $urlMatcher;
+    protected $urlMatcherClass;
     
     /**
      * Constructs the Sea framework and prepares it to handle requests.
@@ -163,7 +163,12 @@ class Sea extends HttpKernel {
         // appropriate controller etc. and thus act as a router.
         $context = new RequestContext();
         $context->fromRequest($request);
-        $matcher = $this->urlMatcher ?: new UrlMatcher($this->routes ?: new RouteCollection(), $context);
+        if ($this->urlMatcherClass) {
+            $matcher = new $this->urlMatcherClass($context);
+        }
+        else {
+            $matcher = new UrlMatcher($this->routes, $context);
+        }
         $listener = new RouterListener($matcher);
         $this->dispatcher->addSubscriber($listener);
         
@@ -206,11 +211,12 @@ class Sea extends HttpKernel {
     /**
      * Sets the desired UrlMatcher
      * 
-     * @param \Symfony\Component\Routing\Matcher\UrlMatcher $matcher
+     * @param string $class Name of the UrlMatcher to load
      * @return \Sea\Sea
+     * @todo Implement this in a decent way...
      */
-    public function setUrlMatcher(UrlMatcher $matcher) {
-        $this->urlMatcher = $matcher;
+    public function setUrlMatcherClass($class) {
+        $this->urlMatcherClass = $class;
         return $this;
     }
     
