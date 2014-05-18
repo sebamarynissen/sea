@@ -83,7 +83,7 @@ class Sea extends HttpKernel {
      * json file specifying the different routes. Note that if this path
      * uses other file resources, those paths should be relative to the given
      * path!
-     * @return \Sea\Sea Fluent interface
+     * @return RouteCollection
      */
     public function routing($routes) {
         if ($routes instanceof RouteCollection) {
@@ -105,7 +105,7 @@ class Sea extends HttpKernel {
                 $route->setPath(preg_replace('/\/$/', '', $path));
             }
         }
-        return $this;
+        return $this->routes;
     }
     
     /**
@@ -209,6 +209,15 @@ class Sea extends HttpKernel {
      */
     public function getDispatcher() {
         return $this->dispatcher;
+    }
+    
+    /**
+     * Returns all routes that were loaded
+     * 
+     * @return RouteCollection
+     */
+    public function getRoutes() {
+        return $this->routes;
     }
     
 }
