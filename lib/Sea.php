@@ -149,9 +149,6 @@ class Sea extends HttpKernel {
     
     public function run(Request $request = null) {
         
-        // First of all, make sure that the routes were loaded
-        $this->checkRoutes();
-        
         // If no request was specified, a request should be created from the
         // global variables
         if (is_null($request)) {
@@ -166,7 +163,7 @@ class Sea extends HttpKernel {
         // appropriate controller etc. and thus act as a router.
         $context = new RequestContext();
         $context->fromRequest($request);
-        $matcher = $this->urlMatcher ?: new UrlMatcher($this->routes, $context);
+        $matcher = $this->urlMatcher ?: new UrlMatcher($this->routes ?: new RouteCollection(), $context);
         $listener = new RouterListener($matcher);
         $this->dispatcher->addSubscriber($listener);
         
@@ -179,27 +176,6 @@ class Sea extends HttpKernel {
         
         // Handle the request
         return $this->handle($request);
-        
-    }
-    
-    /**
-     * Checks whether a RouteCollection was specified. If not, an exception is
-     * thrown
-     * 
-     * @return \Sea\Sea Fluent interface
-     * @throws RoutesNotFoundException If no RouteCollection was found
-     */
-    protected function checkRoutes() {
-        
-        // If the routes were not initialized yet, notify the user that he
-        // should provide a file which will be used to fetch the routes. Any
-        // file resources that the previous file specifies, should be located in
-        // the same folder!
-        if ( !($this->routes instanceof RouteCollection) ) {
-            throw new RoutesNotFoundException('No RouteCollection was found! Make sure to call Sea::routing()!');
-        }
-        
-        return $this;
         
     }
     
