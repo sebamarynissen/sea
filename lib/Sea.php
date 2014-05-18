@@ -144,6 +144,7 @@ class Sea extends HttpKernel {
         else {
             $this->services = new ServiceContainer();
         }
+        $this->services->setSea($this);
     }
     
     public function run(Request $request = null) {
