@@ -2,25 +2,29 @@
 namespace Sea;
 
 use Composer\Autoload\ClassLoader as Composer;
-use Symfony\Component\Config\Loader\DelegatingLoader;
-use Symfony\Component\Config\Loader\LoaderResolver;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpKernel\HttpKernel;
-use Symfony\Component\HttpKernel\Controller\ControllerResolver;
-use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\Matcher\UrlMatcher;
-use Symfony\Component\HttpKernel\EventListener\RouterListener;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Sea\Routing\JsonFileLoader;
-use Sea\Routing\RestRouteLoader;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Sea\Config\Configuration;
 use Sea\Routing\Annotations\AnnotationLoader;
 use Sea\Routing\ControllerListener;
-use Sea\Exception\RoutesNotFoundException;
-use Sea\DependencyInjection\ServiceContainer;
+use Sea\Routing\JsonFileLoader;
+use Sea\Routing\RestRouteLoader;
+use Sea\Routing\Router as SeaRouter;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Config\Loader\DelegatingLoader;
+use Symfony\Component\Config\Loader\LoaderResolver;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Controller\ControllerResolver;
+use Symfony\Component\HttpKernel\EventListener\RouterListener;
+use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\Router;
 
 /**
  * Main entry point for the Sea framework
@@ -31,6 +35,20 @@ use Sea\DependencyInjection\ServiceContainer;
 class Sea extends HttpKernel {
     
     /**
+     * The router which is set
+     * 
+     * @var Router
+     */
+    protected $router;
+    
+    /**
+     * A PhpFileLoader to load the service definitions defined in php files
+     * 
+     * @var PhpFileLoader
+     */
+    protected $containerLoader;
+    
+    /**
      * Composers class loader instance
      * 
      * @var \Composer\Autoloader\ClassLoader
@@ -38,88 +56,75 @@ class Sea extends HttpKernel {
     protected $composer;
     
     /**
-     * All routes that are loaded for the framework
-     * 
-     * @var RouteCollection
-     */
-    protected $routes;
-    
-    /**
      * A container with all loaded services
      * 
-     * @var ServiceContainer
+     * @var ContainerBuilder
      */
-    protected $services;
+    protected $container;
     
     /**
-     * The given UrlMatcher
+     * The dispatcher that was set
      * 
-     * @var UrlMatcher
+     * @var EventDispatcher
      */
-    protected $urlMatcherClass;
+    protected $dispatcher;
     
     /**
      * Constructs the Sea framework and prepares it to handle requests.
      * 
-     * @param \Composer\Autoload\ClassLoader $composer Composers autoloader
-     * @todo Should this be done in the constructor or not???
+     * @param Configuration $config The configuration object. This should be the
+     * return value of the configuration function in config.php
      */
-    public function __construct(Composer $composer) {
-        $this->registerComposer($composer);
+    public function __construct(Configuration $config) {
         parent::__construct(new EventDispatcher(), new ControllerResolver());
+        $this->container = new ContainerBuilder();
+        $this->router = new SeaRouter($config->getRouteCollection());
+        print_r($config->getServiceContainer());
+        die('Died in ' . __FILE__ . ' on line ' . __LINE__);
+        $this->container->merge($config->getServiceContainer());
+        $config->configure($this);
     }
     
     /**
-     * Registers composers class loader as an autoloader for Doctrine
+     * Starts the application. This means that the listeners are registered etc.
      * 
-     * @param \Composer\Autoload\ClassLoader $composer
-     * @return \Sea\Sea
+     * The reason why this is put into a seperate method is because the
+     * listeners need the routers etc, which need to be set first!
+     * 
+     * @return Sea
      */
-    private function registerComposer(Composer $composer) {
-        $this->composer = $composer;
-        AnnotationRegistry::registerLoader(function($class) use ($composer) {
-            return $composer->loadClass($class);
-        });
+    public function start() {
+        $this->registerListeners();
         return $this;
     }
     
     /**
-     * Initializes all routes
+     * Registers all listeners on the dispatcher
      * 
-     * @param RouteCollection|string $routes A RouteCollection, or a path to a
-     * json file specifying the different routes. Note that if this path
-     * uses other file resources, those paths should be relative to the given
-     * path!
-     * @return RouteCollection
+     * @return Sea Fluent interface
      */
-    public function routing($routes) {
-        if ($routes instanceof RouteCollection) {
-            $this->routes = $routes;
-        }
-        elseif (is_string($routes)) {
-            $info = pathinfo($routes);
-            $paths = array($info['dirname']);
-            $loader = $this->getRoutesLoader($paths);
-            $this->routes = $loader->load($info['basename']);
-        }
+    private function registerListeners() {
         
-        // Symfony's default behavior when a prefix is specified is, that 
-        // root/prefix/ and root/prefix are not the same. In Sea's view, they
-        // ARE the same, therefore, rewrite the routes as a fix.
-        foreach ($this->routes as $route) {
-            $path = $route->getPath();
-            if (preg_match('/\/$/', $path)) {
-                $route->setPath(preg_replace('/\/$/', '', $path));
-            }
-        }
-        return $this->routes;
+        // Register a RouterListener, which listens to a KernelRequest Event.
+        // This RouterListener will then be responsible for calling the
+        // appropriate controller etc. and thus act as a router.
+        $listener = new RouterListener($this->router);
+        $this->dispatcher->addSubscriber($listener);
+        
+        // Add the subscriber which injects the service container into the
+        // controller and also checks whether some preLoad method should be
+        // implemented (which depends on whether the PreLoadInterface is 
+        // implemented or not).
+        $controllerListener = new ControllerListener($this->container);
+        $this->dispatcher->addSubscriber($controllerListener);
+        return $this;
     }
     
     /**
      * Sets a Symfony DelegatingLoader to load the routes
      * 
      * @param string[] $paths The paths to look for the resources
-     * @return \Sea\Sea Fluent interface
+     * @return DelegatingLoader
      */
     protected function getRoutesLoader($paths) {
         // IMPORTANT: Order of the loaders is important!
@@ -132,55 +137,29 @@ class Sea extends HttpKernel {
     }
     
     /**
-     * Registers all services.
+     * Handles the request
      * 
-     * @param type $services
-     * @return \Sea\Sea
+     * @param Request $request
+     * @return type
      */
-    public function services($services) {
-        if ($services instanceof ServiceContainer) {
-            $this->services = $services;
-        }
-        else {
-            $this->services = new ServiceContainer();
-        }
-        $this->services->setSea($this);
-    }
-    
-    public function run(Request $request = null) {
+    public function handle(Request $request = null, $type = HttpKernel::MASTER_REQUEST, $catch = true) {
         
         // If no request was specified, a request should be created from the
         // global variables
         if (is_null($request)) {
             $request = Request::createFromGlobals();
+            if (0 === strpos($request->headers->get('CONTENT_TYPE'), 'application/json')) {
+                $data = json_decode($request->getContent(), true);
+                $request->request = new ParameterBag($data);
+            }
         }
-        
-        // Next, populate the request with a session
-        $request->setSession(new Session());
-        
-        // Register a RouterListener, which listens to a KernelRequest Event.
-        // This RouterListener will then be responsible for calling the
-        // appropriate controller etc. and thus act as a router.
         $context = new RequestContext();
         $context->fromRequest($request);
-        if ($this->urlMatcherClass) {
-            $matcher = new $this->urlMatcherClass($context);
-        }
-        else {
-            $matcher = new UrlMatcher($this->routes, $context);
-        }
-        $listener = new RouterListener($matcher);
-        $this->dispatcher->addSubscriber($listener);
-        
-        // Add the subscriber which injects the service container into the
-        // controller and also checks whether some preLoad method should be
-        // implemented (which depends on whether the PreLoadInterface is 
-        // implemented or not).
-        $controllerListener = new ControllerListener($request, $this->services);
-        $this->dispatcher->addSubscriber($controllerListener);
+        $this->router->setContext($context);
         
         // Handle the request
-        return $this->handle($request);
+        $response = parent::handle($request, $type, $catch);
+        return $response;
         
     }
     
@@ -205,19 +184,7 @@ class Sea extends HttpKernel {
      * @return RouteCollection
      */
     public function getRoutes() {
-        return $this->routes;
-    }
-    
-    /**
-     * Sets the desired UrlMatcher
-     * 
-     * @param string $class Name of the UrlMatcher to load
-     * @return \Sea\Sea
-     * @todo Implement this in a decent way...
-     */
-    public function setUrlMatcherClass($class) {
-        $this->urlMatcherClass = $class;
-        return $this;
+        return $this->router->getRouteCollection();
     }
     
 }

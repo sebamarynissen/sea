@@ -1,6 +1,6 @@
 {
-    "securitytest": {
-        "resource": "Sea\\Controllers\\SecurityController",
+    "index": {
+        "resource": "Controllers\\IndexController",
         "type": "annotation"
     }
 }

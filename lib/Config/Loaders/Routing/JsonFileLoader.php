@@ -1,5 +1,5 @@
 <?php
-namespace Sea\Routing;
+namespace Sea\Config\Loaders\Routing;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\FileLoader;

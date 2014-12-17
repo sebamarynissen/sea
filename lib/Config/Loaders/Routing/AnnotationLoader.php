@@ -1,5 +1,5 @@
 <?php
-namespace Sea\Routing\Annotations;
+namespace Sea\Config\Loaders\Routing;
 
 use ReflectionClass;
 use ReflectionMethod;
