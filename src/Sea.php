@@ -2,6 +2,7 @@
 namespace Sea;
 
 use Sea\Config\Configuration;
+use Sea\Config\ConfigurationInterface;
 use Sea\Routing\ControllerListener;
 use Sea\Routing\Router as SeaRouter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -65,7 +66,7 @@ class Sea extends HttpKernel {
      * @param Configuration $config The configuration object. This should be the
      * return value of the configuration function in config.php
      */
-    public function __construct(Configuration $config) {
+    public function __construct(ConfigurationInterface $config) {
         parent::__construct(new EventDispatcher(), new ControllerResolver());
         $this->container = $config->getServiceContainer();
         $this->router = new SeaRouter($config->getRouteCollection());
