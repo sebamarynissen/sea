@@ -44,4 +44,14 @@ abstract class Controller extends ContainerAware {
         return new RedirectResponse($url, $status, $headers);
     }
     
+    /**
+     * Shortcut to get services from the container
+     * 
+     * @param string $id Service id
+     * @return mixed A service
+     */
+    protected function get($id) {
+        return $this->container->get($id);
+    }
+    
 }
