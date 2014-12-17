@@ -6,10 +6,12 @@ use Sea\Config\ConfigurationInterface;
 use Sea\Routing\ControllerListener;
 use Sea\Routing\Router as SeaRouter;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -113,6 +115,9 @@ class Sea extends HttpKernel {
                 $request->request = new ParameterBag($data);
             }
         }
+        $session = new Session();
+        $session->start();
+        $request->setSession($session);
         $context = new RequestContext();
         $context->fromRequest($request);
         $this->router->setContext($context);
@@ -150,7 +155,7 @@ class Sea extends HttpKernel {
     /**
      * All loaded dependencies in the DependencyContainer
      * 
-     * @return \Symfony\Component\DependencyInjection\ContainerInterface
+     * @return ContainerInterface
      */
     public function getServices() {
         return $this->container;
