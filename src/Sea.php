@@ -147,4 +147,13 @@ class Sea extends HttpKernel {
         return $this->router->getRouteCollection();
     }
     
+    /**
+     * All loaded dependencies in the DependencyContainer
+     * 
+     * @return \Symfony\Component\DependencyInjection\ContainerInterface
+     */
+    public function getServices() {
+        return $this->container;
+    }
+    
 }
