@@ -18,17 +18,7 @@ class IndexController extends Controller {
      * @Route("/")
      */
     public function index() {
-        
-        /* @var $context SecurityContext */
-        $context = $this->get('security.context');
-        
-        
-        /* @var $token UsernamePasswordToken */
-        $token = $context->getToken();
-        
-        /* @var $user UserInterface */
-        $user = $token->getUser();
-        return $this->response($user->getUsername());
+        return $this->response('Hello');
     }
     
     /**

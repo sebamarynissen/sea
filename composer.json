@@ -3,7 +3,7 @@
     "description": "Sea is a PHP framework built on some Symfony components. It is mainly used personally, but feel free to use it.",
     "license": "MIT",
     "type": "library",
-    "version": "0.0.1",
+    "version": "0.2.0",
     "authors": [
         {
             "name": "sebamarynissen",
@@ -23,7 +23,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Sea\\": "lib/"
+            "Sea\\": "src/"
         },
         "psr-0": {
             "": "test/"
